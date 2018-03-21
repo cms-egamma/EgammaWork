@@ -14,7 +14,7 @@ process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
 #  (although it can be "overridden" by requirements of a given release)
 from Configuration.AlCa.GlobalTag import GlobalTag
 #process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:phase1_2017_realistic', '')
-process.GlobalTag = GlobalTag(process.GlobalTag, '92X_upgrade2017_realistic_v10', '')
+process.GlobalTag = GlobalTag(process.GlobalTag, '94X_mc2017_realistic_v12', '')
 
 #
 # Define input data to read
@@ -28,11 +28,7 @@ inputFilesAOD = cms.untracked.vstring(
 
 inputFilesMiniAOD = cms.untracked.vstring(
     # MiniAOD test files from /DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer17MiniAOD-92X_upgrade2017_realistic_v10_ext1-v1/MINIAODSIM
-'/store/mc/RunIISummer17MiniAOD/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/MINIAODSIM/92X_upgrade2017_realistic_v10_ext1-v1/110000/02CF84A2-6086-E711-A3A1-0CC47A7C3458.root',
-'/store/mc/RunIISummer17MiniAOD/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/MINIAODSIM/92X_upgrade2017_realistic_v10_ext1-v1/110000/02DD1F83-7187-E711-B939-0025905B8576.root',
-'/store/mc/RunIISummer17MiniAOD/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/MINIAODSIM/92X_upgrade2017_realistic_v10_ext1-v1/110000/045B5C43-4B86-E711-BD5C-0025905A611E.root',
-'/store/mc/RunIISummer17MiniAOD/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/MINIAODSIM/92X_upgrade2017_realistic_v10_ext1-v1/110000/0468DB20-B986-E711-9968-0CC47A13CDB0.root',
-'/store/mc/RunIISummer17MiniAOD/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/MINIAODSIM/92X_upgrade2017_realistic_v10_ext1-v1/110000/08EAAB9F-A885-E711-8A11-001E67A3F3DF.root',
+    '/store/mc/RunIIFall17MiniAOD/DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/94X_mc2017_realistic_v10-v1/00000/005DC030-D3F4-E711-889A-02163E01A62D.root',
     )
 
 #
@@ -79,7 +75,7 @@ process.ntupler = cms.EDAnalyzer('SimpleElectronNtupler',
                                  verticesMiniAOD     = cms.InputTag("offlineSlimmedPrimaryVertices"),
                                  conversionsMiniAOD  = cms.InputTag('reducedEgamma:reducedConversions'),
                                  # Effective areas for computing PU correction for isolations
-                                 effAreasConfigFile = cms.FileInPath("RecoEgamma/ElectronIdentification/data/Fall17/effAreaElectrons_cone03_pfNeuHadronsAndPhotons_92X.txt")
+                                 effAreasConfigFile = cms.FileInPath("EgammaWork/ElectronNtupler/data/effAreaElectrons_cone03_pfNeuHadronsAndPhotons_94X.txt")
                                  )
 
 process.TFileService = cms.Service("TFileService",
