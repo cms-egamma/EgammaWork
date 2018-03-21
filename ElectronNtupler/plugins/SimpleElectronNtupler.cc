@@ -2,7 +2,7 @@
 //
 // Package:    EgammaWork/ElectronNtupler
 // Class:      SimpleElectronNtupler
-// 
+//
 /**\class SimpleElectronNtupler SimpleElectronNtupler.cc EgammaWork/ElectronNtupler/plugins/SimpleElectronNtupler.cc
 
  Description: [one line class summary]
@@ -67,10 +67,10 @@ class SimpleElectronNtupler : public edm::EDAnalyzer {
 
       static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
 
-  enum ElectronMatchType {UNMATCHED = 0, 
-			  TRUE_PROMPT_ELECTRON, 
-			  TRUE_ELECTRON_FROM_TAU,
-			  TRUE_NON_PROMPT_ELECTRON}; // The last does not include tau parents
+      enum ElectronMatchType {UNMATCHED = 0,
+                              TRUE_PROMPT_ELECTRON,
+                              TRUE_ELECTRON_FROM_TAU,
+                              TRUE_NON_PROMPT_ELECTRON}; // The last does not include tau parents
 
    private:
       virtual void beginJob() override;
@@ -82,10 +82,9 @@ class SimpleElectronNtupler : public edm::EDAnalyzer {
       //virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) override;
       //virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) override;
 
-      int matchToTruth(const edm::Ptr<reco::GsfElectron> el,  
-		       const edm::Handle<edm::View<reco::GenParticle>>  &prunedGenParticles);
+      int matchToTruth(const edm::Ptr<reco::GsfElectron> el, const edm::Handle<edm::View<reco::GenParticle>> &prunedGenParticles, float &genPt);
       void findFirstNonElectronMother(const reco::Candidate *particle, int &ancestorPID, int &ancestorStatus);
-  
+
       // ----------member data ---------------------------
       // Data members that are the same for AOD and miniAOD
       edm::EDGetTokenT<edm::View<PileupSummaryInfo> > pileupToken_;
@@ -105,45 +104,46 @@ class SimpleElectronNtupler : public edm::EDAnalyzer {
       edm::EDGetTokenT<edm::View<reco::GenParticle> > genParticlesMiniAODToken_;
       edm::EDGetTokenT<reco::ConversionCollection> conversionsMiniAODToken_;
 
-  TTree *electronTree_;
+      TTree *electronTree_;
 
-  // Vars for PVs
-  Int_t pvNTracks_;
+      // Vars for PVs
+      Int_t pvNTracks_;
 
-  // Vars for weight (can be negative)
-  Float_t genWeight_;
+      // Vars for weight (can be negative)
+      Float_t genWeight_;
 
-  // Vars for pile-up
-  Int_t nPUTrue_;    // true pile-up
-  Int_t nPU_;        // generated pile-up
-  Int_t nPV_;        // number of reconsrtucted primary vertices
-  Float_t rho_;      // the rho variable
+      // Vars for pile-up
+      Int_t nPUTrue_;    // true pile-up
+      Int_t nPU_;        // generated pile-up
+      Int_t nPV_;        // number of reconsrtucted primary vertices
+      Float_t rho_;      // the rho variable
 
-  // all electron variables
-  Int_t nElectrons_;
+      // all electron variables
+      Int_t nElectrons_;
 
-  std::vector<Float_t> pt_;
-  std::vector<Float_t> eSC_;
-  std::vector<Float_t> etaSC_;
-  std::vector<Float_t> phiSC_;
-  std::vector<Float_t> dEtaIn_;
-  std::vector<Float_t> dEtaSeed_;
-  std::vector<Float_t> dPhiIn_;
-  std::vector<Float_t> hOverE_;
-  std::vector<Float_t> full5x5_sigmaIetaIeta_;
-  std::vector<Float_t> isoChargedHadrons_;
-  std::vector<Float_t> isoNeutralHadrons_;
-  std::vector<Float_t> isoPhotons_;
-  std::vector<Float_t> isoChargedFromPU_;
-  std::vector<Float_t> relCombIsoWithEA_;
-  std::vector<Float_t> ooEmooP_;
-  std::vector<Float_t> d0_;
-  std::vector<Float_t> dz_;
-  std::vector<Int_t>   expectedMissingInnerHits_;
-  std::vector<Int_t>   passConversionVeto_;     
-  std::vector<Int_t>   isTrue_;
+      std::vector<Float_t> pt_;
+      std::vector<Float_t> genPt_;
+      std::vector<Float_t> eSC_;
+      std::vector<Float_t> etaSC_;
+      std::vector<Float_t> phiSC_;
+      std::vector<Float_t> dEtaIn_;
+      std::vector<Float_t> dEtaSeed_;
+      std::vector<Float_t> dPhiIn_;
+      std::vector<Float_t> hOverE_;
+      std::vector<Float_t> full5x5_sigmaIetaIeta_;
+      std::vector<Float_t> isoChargedHadrons_;
+      std::vector<Float_t> isoNeutralHadrons_;
+      std::vector<Float_t> isoPhotons_;
+      std::vector<Float_t> isoChargedFromPU_;
+      std::vector<Float_t> relCombIsoWithEA_;
+      std::vector<Float_t> ooEmooP_;
+      std::vector<Float_t> d0_;
+      std::vector<Float_t> dz_;
+      std::vector<Int_t>   expectedMissingInnerHits_;
+      std::vector<Int_t>   passConversionVeto_;
+      std::vector<Int_t>   isTrue_;
 
-  EffectiveAreas   effectiveAreas_;
+      EffectiveAreas   effectiveAreas_;
 };
 
 //
@@ -165,104 +165,66 @@ SimpleElectronNtupler::SimpleElectronNtupler(const edm::ParameterSet& iConfig):
   // Prepare tokens for all input collections and objects
   //
 
-  // Universal tokens for AOD and miniAOD  
-  genEventInfoProduct_ = consumes<GenEventInfoProduct> 
-    (iConfig.getParameter <edm::InputTag>
-     ("genEventInfoProduct"));
-
-  pileupToken_ = consumes<edm::View<PileupSummaryInfo> >
-    (iConfig.getParameter <edm::InputTag>
-     ("pileup"));
-
-  rhoToken_    = consumes<double> 
-    (iConfig.getParameter <edm::InputTag>
-     ("rho"));
-
-  beamSpotToken_    = consumes<reco::BeamSpot> 
-    (iConfig.getParameter <edm::InputTag>
-     ("beamSpot"));
+  // Universal tokens for AOD and miniAOD
+  genEventInfoProduct_ = consumes<GenEventInfoProduct>         (iConfig.getParameter<edm::InputTag>("genEventInfoProduct"));
+  pileupToken_         = consumes<edm::View<PileupSummaryInfo>>(iConfig.getParameter<edm::InputTag>("pileup"));
+  rhoToken_            = consumes<double>                      (iConfig.getParameter<edm::InputTag>("rho"));
+  beamSpotToken_       = consumes<reco::BeamSpot>              (iConfig.getParameter<edm::InputTag>("beamSpot"));
 
   // AOD tokens
-  electronsToken_    = mayConsume<edm::View<reco::GsfElectron> >
-    (iConfig.getParameter<edm::InputTag>
-     ("electrons"));
-
-  vtxToken_          = mayConsume<reco::VertexCollection>
-    (iConfig.getParameter<edm::InputTag>
-     ("vertices"));
-
-  genParticlesToken_ = mayConsume<edm::View<reco::GenParticle> >
-    (iConfig.getParameter<edm::InputTag>
-     ("genParticles"));
-
-  conversionsToken_ = mayConsume< reco::ConversionCollection >
-    (iConfig.getParameter<edm::InputTag>
-     ("conversions"));
+  electronsToken_      = mayConsume<edm::View<reco::GsfElectron>>(iConfig.getParameter<edm::InputTag>("electrons"));
+  vtxToken_            = mayConsume<reco::VertexCollection>      (iConfig.getParameter<edm::InputTag>("vertices"));
+  genParticlesToken_   = mayConsume<edm::View<reco::GenParticle>>(iConfig.getParameter<edm::InputTag>("genParticles"));
+  conversionsToken_    = mayConsume< reco::ConversionCollection> (iConfig.getParameter<edm::InputTag>("conversions"));
 
   // MiniAOD tokens
-  // For electrons, use the fact that pat::Electron can be cast into 
+  // For electrons, use the fact that pat::Electron can be cast into
   // GsfElectron
-  electronsMiniAODToken_    = mayConsume<edm::View<reco::GsfElectron> >
-    (iConfig.getParameter<edm::InputTag>
-     ("electronsMiniAOD"));
-
-  vtxMiniAODToken_          = mayConsume<reco::VertexCollection>
-    (iConfig.getParameter<edm::InputTag>
-     ("verticesMiniAOD"));
-
-  genParticlesMiniAODToken_ = mayConsume<edm::View<reco::GenParticle> >
-    (iConfig.getParameter<edm::InputTag>
-     ("genParticlesMiniAOD"));
-
-  conversionsMiniAODToken_ = mayConsume< reco::ConversionCollection >
-    (iConfig.getParameter<edm::InputTag>
-     ("conversionsMiniAOD"));
+  electronsMiniAODToken_    = mayConsume<edm::View<reco::GsfElectron>>(iConfig.getParameter<edm::InputTag>("electronsMiniAOD"));
+  vtxMiniAODToken_          = mayConsume<reco::VertexCollection>      (iConfig.getParameter<edm::InputTag>("verticesMiniAOD"));
+  genParticlesMiniAODToken_ = mayConsume<edm::View<reco::GenParticle>>(iConfig.getParameter<edm::InputTag>("genParticlesMiniAOD"));
+  conversionsMiniAODToken_  = mayConsume< reco::ConversionCollection> (iConfig.getParameter<edm::InputTag>("conversionsMiniAOD"));
 
   //
   // Set up the ntuple structure
   //
   edm::Service<TFileService> fs;
   electronTree_ = fs->make<TTree> ("ElectronTree", "Electron data");
-  
-  electronTree_->Branch("pvNTracks"    ,  &pvNTracks_ , "pvNTracks/I");
 
-  electronTree_->Branch("nPV"        ,  &nPV_     , "nPV/I");
-  electronTree_->Branch("nPU"        ,  &nPU_     , "nPU/I");
-  electronTree_->Branch("nPUTrue"    ,  &nPUTrue_ , "nPUTrue/I");
-  electronTree_->Branch("rho"        ,  &rho_ , "rho/F");
-
-  electronTree_->Branch("genWeight"    ,  &genWeight_ , "genWeight/F");
-  electronTree_->Branch("nEle"    ,  &nElectrons_ , "nEle/I");
-  electronTree_->Branch("pt"    ,  &pt_    );
-  electronTree_->Branch("eSC"    ,  &eSC_    );
-  electronTree_->Branch("etaSC" ,  &etaSC_ );
-  electronTree_->Branch("phiSC" ,  &phiSC_ );
-  electronTree_->Branch("dEtaIn",  &dEtaIn_);
-  electronTree_->Branch("dEtaSeed",  &dEtaSeed_);
-  electronTree_->Branch("dPhiIn",  &dPhiIn_);
-  electronTree_->Branch("hOverE",  &hOverE_);
-  electronTree_->Branch("full5x5_sigmaIetaIeta", &full5x5_sigmaIetaIeta_);
-  electronTree_->Branch("isoChargedHadrons"      , &isoChargedHadrons_);
-  electronTree_->Branch("isoNeutralHadrons"      , &isoNeutralHadrons_);
-  electronTree_->Branch("isoPhotons"             , &isoPhotons_);
-  electronTree_->Branch("relCombIsoWithEA"       , &relCombIsoWithEA_);
-  electronTree_->Branch("isoChargedFromPU"       , &isoChargedFromPU_);
-  electronTree_->Branch("ooEmooP", &ooEmooP_);
-  electronTree_->Branch("d0"     , &d0_);
-  electronTree_->Branch("dz"     , &dz_);
+  electronTree_->Branch("pvNTracks"               , &pvNTracks_ , "pvNTracks/I");
+  electronTree_->Branch("nPV"                     , &nPV_       , "nPV/I");
+  electronTree_->Branch("nPU"                     , &nPU_       , "nPU/I");
+  electronTree_->Branch("nPUTrue"                 , &nPUTrue_   , "nPUTrue/I");
+  electronTree_->Branch("rho"                     , &rho_       , "rho/F");
+  electronTree_->Branch("genWeight"               , &genWeight_ , "genWeight/F");
+  electronTree_->Branch("nEle"                    , &nElectrons_, "nEle/I");
+  electronTree_->Branch("pt"                      , &pt_    );
+  electronTree_->Branch("genPt"                   , &genPt_    );
+  electronTree_->Branch("eSC"                     , &eSC_    );
+  electronTree_->Branch("etaSC"                   , &etaSC_ );
+  electronTree_->Branch("phiSC"                   , &phiSC_ );
+  electronTree_->Branch("dEtaIn"                  , &dEtaIn_);
+  electronTree_->Branch("dEtaSeed"                , &dEtaSeed_);
+  electronTree_->Branch("dPhiIn"                  , &dPhiIn_);
+  electronTree_->Branch("hOverE"                  , &hOverE_);
+  electronTree_->Branch("full5x5_sigmaIetaIeta"   , &full5x5_sigmaIetaIeta_);
+  electronTree_->Branch("isoChargedHadrons"       , &isoChargedHadrons_);
+  electronTree_->Branch("isoNeutralHadrons"       , &isoNeutralHadrons_);
+  electronTree_->Branch("isoPhotons"              , &isoPhotons_);
+  electronTree_->Branch("relCombIsoWithEA"        , &relCombIsoWithEA_);
+  electronTree_->Branch("isoChargedFromPU"        , &isoChargedFromPU_);
+  electronTree_->Branch("ooEmooP"                 , &ooEmooP_);
+  electronTree_->Branch("d0"                      , &d0_);
+  electronTree_->Branch("dz"                      , &dz_);
   electronTree_->Branch("expectedMissingInnerHits", &expectedMissingInnerHits_);
-  electronTree_->Branch("passConversionVeto", &passConversionVeto_);
-  electronTree_->Branch("isTrue"    , &isTrue_);
- 
+  electronTree_->Branch("passConversionVeto"      , &passConversionVeto_);
+  electronTree_->Branch("isTrue"                  , &isTrue_);
 }
 
 
-SimpleElectronNtupler::~SimpleElectronNtupler()
-{
- 
+SimpleElectronNtupler::~SimpleElectronNtupler(){
    // do anything here that needs to be done at desctruction time
    // (e.g. close files, deallocate resources etc.)
-
 }
 
 
@@ -271,13 +233,11 @@ SimpleElectronNtupler::~SimpleElectronNtupler()
 //
 
 // ------------ method called for each event  ------------
-void
-SimpleElectronNtupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
-{
+void SimpleElectronNtupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup){
   using namespace std;
   using namespace edm;
   using namespace reco;
-  
+
   // Get gen weight info
   edm::Handle< GenEventInfoProduct > genWeightH;
   iEvent.getByToken(genEventInfoProduct_,genWeightH);
@@ -292,7 +252,7 @@ SimpleElectronNtupler::analyze(const edm::Event& iEvent, const edm::EventSetup& 
       nPUTrue_= puInfoElement.getTrueNumInteractions();
     }
   }
-  
+
   // Get rho value
   edm::Handle< double > rhoH;
   iEvent.getByToken(rhoToken_,rhoH);
@@ -300,8 +260,8 @@ SimpleElectronNtupler::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 
   // Get the beam spot
   edm::Handle<reco::BeamSpot> theBeamSpot;
-  iEvent.getByToken(beamSpotToken_,theBeamSpot);  
-  
+  iEvent.getByToken(beamSpotToken_,theBeamSpot);
+
   // Retrieve the collection of electrons from the event.
   // If we fail to retrieve the collection with the standard AOD
   // name, we next look for the one with the stndard miniAOD name.
@@ -314,31 +274,27 @@ SimpleElectronNtupler::analyze(const edm::Event& iEvent, const edm::EventSetup& 
     isAOD = false;
     iEvent.getByToken(electronsMiniAODToken_,electrons);
   }
-  
+
   // Get the MC collection
   Handle<edm::View<reco::GenParticle> > genParticles;
-  if( isAOD )
-    iEvent.getByToken(genParticlesToken_,genParticles);
-  else
-    iEvent.getByToken(genParticlesMiniAODToken_,genParticles);
-  
+  if(isAOD) iEvent.getByToken(genParticlesToken_,genParticles);
+  else      iEvent.getByToken(genParticlesMiniAODToken_,genParticles);
+
   // Get PV
   edm::Handle<reco::VertexCollection> vertices;
-  if( isAOD )
-    iEvent.getByToken(vtxToken_, vertices);
-  else
-    iEvent.getByToken(vtxMiniAODToken_, vertices);
-  
+  if(isAOD) iEvent.getByToken(vtxToken_, vertices);
+  else      iEvent.getByToken(vtxMiniAODToken_, vertices);
+
   if (vertices->empty()) return; // skip the event if no PV found
   const reco::Vertex &pv = vertices->front();
   nPV_    = vertices->size();
-  
+
   // NOTE FOR RUN 2 THE OLD SELECTION OF GOOD VERTICES BELOW IS DISCOURAGED
   // // Find the first vertex in the collection that passes
   // // good quality criteria
   // VertexCollection::const_iterator firstGoodVertex = vertices->end();
   // int firstGoodVertexIdx = 0;
-  // for (VertexCollection::const_iterator vtx = vertices->begin(); 
+  // for (VertexCollection::const_iterator vtx = vertices->begin();
   //      vtx != vertices->end(); ++vtx, ++firstGoodVertexIdx) {
   //   // Replace isFake() for miniAOD because it requires tracks and miniAOD vertices don't have tracks:
   //   // Vertex.h: bool isFake() const {return (chi2_==0 && ndof_==0 && tracks_.empty());}
@@ -353,25 +309,24 @@ SimpleElectronNtupler::analyze(const edm::Event& iEvent, const edm::EventSetup& 
   //     break;
   //   }
   // }
-  
+
   // if ( firstGoodVertex==vertices->end() )
   //   return; // skip event if there are no good PVs
-  
+
   // // Seems always zero. Not stored in miniAOD...?
   // pvNTracks_ = firstGoodVertex->nTracks();
   pvNTracks_ = pv.nTracks();
-  
+
 
   // Get the conversions collection
   edm::Handle<reco::ConversionCollection> conversions;
-  if(isAOD)
-    iEvent.getByToken(conversionsToken_, conversions);
-  else
-    iEvent.getByToken(conversionsMiniAODToken_, conversions);
+  if(isAOD) iEvent.getByToken(conversionsToken_, conversions);
+  else      iEvent.getByToken(conversionsMiniAODToken_, conversions);
 
   // Loop over electrons
   nElectrons_ = 0;
   pt_.clear();
+  genPt_.clear();
   eSC_.clear();
   etaSC_.clear();
   phiSC_.clear();
@@ -389,35 +344,27 @@ SimpleElectronNtupler::analyze(const edm::Event& iEvent, const edm::EventSetup& 
   d0_.clear();
   dz_.clear();
   expectedMissingInnerHits_.clear();
-  passConversionVeto_.clear();     
+  passConversionVeto_.clear();
   isTrue_.clear();
 
   for (size_t i = 0; i < electrons->size(); ++i){
     const auto el = electrons->ptrAt(i);
-  // for (const pat::Electron &el : *electrons) {
-    
+
     // Kinematics
-    if( el->pt() < 10 ) // keep only electrons above 10 GeV
-      continue;
-    
+    if(el->pt() < 10) continue; // keep only electrons above 10 GeV
+
     nElectrons_++;
     pt_.push_back( el->pt() );
     eSC_.push_back( el->superCluster()->energy() );
     etaSC_.push_back( el->superCluster()->eta() );
     phiSC_.push_back( el->superCluster()->phi() );
-    
+
     // ID and matching
     dEtaIn_.push_back( el->deltaEtaSuperClusterTrackAtVtx() );
     // Calculation of dEtaSeed is taken from VID (by HEEP folks)
     //   https://github.com/cms-sw/cmssw/blob/CMSSW_8_1_X/RecoEgamma/ElectronIdentification/plugins/cuts/GsfEleDEtaInSeedCut.cc#L31-L32
-    float dEtaSeedValue = 
-      el->superCluster().isNonnull() && el->superCluster()->seed().isNonnull() 
-      ? 
-      el->deltaEtaSuperClusterTrackAtVtx() 
-      - el->superCluster()->eta() 
-      + el->superCluster()->seed()->eta() 
-      : std::numeric_limits<float>::max();
-    dEtaSeed_.push_back( dEtaSeedValue );
+    if(el->superCluster().isNonnull() and el->superCluster()->seed().isNonnull()) dEtaSeed_.push_back(el->deltaEtaSuperClusterTrackAtVtx() - el->superCluster()->eta() + el->superCluster()->seed()->eta());
+    else                                                                          dEtaSeed_.push_back(std::numeric_limits<float>::max());
     dPhiIn_.push_back( el->deltaPhiSuperClusterTrackAtVtx() );
     hOverE_.push_back( el->hcalOverEcal() );
     full5x5_sigmaIetaIeta_.push_back( el->full5x5_sigmaIetaIeta() );
@@ -433,7 +380,7 @@ SimpleElectronNtupler::analyze(const edm::Event& iEvent, const edm::EventSetup& 
     }else{
       ooEmooP_.push_back( fabs(1.0/el->ecalEnergy() - el->eSuperClusterOverP()/el->ecalEnergy() ) );
     }
-    
+
     // Isolation
     GsfElectron::PflowIsolationVariables pfIso = el->pfIsolationVariables();
     // Compute individual PF isolations
@@ -445,52 +392,46 @@ SimpleElectronNtupler::analyze(const edm::Event& iEvent, const edm::EventSetup& 
     // Compute combined relative PF isolation with the effective area correction for pile-up
     float abseta =  abs(el->superCluster()->eta());
     float eA = effectiveAreas_.getEffectiveArea(abseta);
-    relCombIsoWithEA_.push_back( ( pfIso.sumChargedHadronPt
-				   + std::max( 0.0f, pfIso.sumNeutralHadronEt + pfIso.sumPhotonEt - eA*rho_) )
-				 / el->pt() );
+    relCombIsoWithEA_.push_back((pfIso.sumChargedHadronPt + std::max( 0.0f, pfIso.sumNeutralHadronEt + pfIso.sumPhotonEt - eA*rho_)) / el->pt() );
 
     // Impact parameter
     reco::GsfTrackRef theTrack = el->gsfTrack();
     d0_.push_back( (-1) * theTrack->dxy(pv.position() ) );
     dz_.push_back( theTrack->dz( pv.position() ) );
-    // d0_.push_back( (-1) * theTrack->dxy(firstGoodVertex->position() ) );
-    // dz_.push_back( theTrack->dz( firstGoodVertex->position() ) );
 
     // Conversion rejection
     expectedMissingInnerHits_.push_back(el->gsfTrack()->hitPattern()
-					.numberOfHits(reco::HitPattern::MISSING_INNER_HITS) );
+					.numberOfLostHits(reco::HitPattern::MISSING_INNER_HITS) );
 
-    bool passConvVeto = !ConversionTools::hasMatchedConversion(*el, 
-							       conversions,
-							       theBeamSpot->position());
+    bool passConvVeto = !ConversionTools::hasMatchedConversion(*el, conversions, theBeamSpot->position());
     passConversionVeto_.push_back( (int) passConvVeto );
-    
+
     // Match to generator level truth
-    
-    isTrue_.push_back( matchToTruth( el, genParticles) );
-    
+    float genPt = 0;
+    isTrue_.push_back(matchToTruth( el, genParticles, genPt));
+    genPt_.push_back(genPt);
   }
-  
+
   // Save this electron's info
   electronTree_->Fill();
 }
 
 
 // ------------ method called once each job just before starting event loop  ------------
-void 
+void
 SimpleElectronNtupler::beginJob()
 {
 }
 
 // ------------ method called once each job just after ending the event loop  ------------
-void 
-SimpleElectronNtupler::endJob() 
+void
+SimpleElectronNtupler::endJob()
 {
 }
 
 // ------------ method called when starting to processes a run  ------------
 /*
-void 
+void
 SimpleElectronNtupler::beginRun(edm::Run const&, edm::EventSetup const&)
 {
 }
@@ -498,7 +439,7 @@ SimpleElectronNtupler::beginRun(edm::Run const&, edm::EventSetup const&)
 
 // ------------ method called when ending the processing of a run  ------------
 /*
-void 
+void
 SimpleElectronNtupler::endRun(edm::Run const&, edm::EventSetup const&)
 {
 }
@@ -506,7 +447,7 @@ SimpleElectronNtupler::endRun(edm::Run const&, edm::EventSetup const&)
 
 // ------------ method called when starting to processes a luminosity block  ------------
 /*
-void 
+void
 SimpleElectronNtupler::beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
 {
 }
@@ -514,7 +455,7 @@ SimpleElectronNtupler::beginLuminosityBlock(edm::LuminosityBlock const&, edm::Ev
 
 // ------------ method called when ending the processing of a luminosity block  ------------
 /*
-void 
+void
 SimpleElectronNtupler::endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
 {
 }
@@ -530,10 +471,10 @@ SimpleElectronNtupler::fillDescriptions(edm::ConfigurationDescriptions& descript
   descriptions.addDefault(desc);
 }
 
-int SimpleElectronNtupler::matchToTruth(const edm::Ptr<reco::GsfElectron> el, 
-				  const edm::Handle<edm::View<reco::GenParticle>> &prunedGenParticles){
+int SimpleElectronNtupler::matchToTruth(const edm::Ptr<reco::GsfElectron> el,
+				  const edm::Handle<edm::View<reco::GenParticle>> &prunedGenParticles, float &genPt){
 
-  // 
+  //
   // Explicit loop and geometric matching method (advised by Josh Bendavid)
   //
 
@@ -558,8 +499,9 @@ int SimpleElectronNtupler::matchToTruth(const edm::Ptr<reco::GsfElectron> el,
     return UNMATCHED;
   }
 
-  // 
-  int ancestorPID = -999; 
+  genPt = closestElectron->pt();
+  //
+  int ancestorPID = -999;
   int ancestorStatus = -999;
   findFirstNonElectronMother(closestElectron, ancestorPID, ancestorStatus);
 
@@ -569,19 +511,15 @@ int SimpleElectronNtupler::matchToTruth(const edm::Ptr<reco::GsfElectron> el,
     printf("SimpleElectronNtupler: ERROR! Electron does not apper to have a non-electron parent\n");
     return UNMATCHED;
   }
-  
-  if( abs(ancestorPID) > 50 && ancestorStatus == 2 )
-    return TRUE_NON_PROMPT_ELECTRON;
 
-  if( abs(ancestorPID) == 15 && ancestorStatus == 2 )
-    return TRUE_ELECTRON_FROM_TAU;
+  if( abs(ancestorPID) > 50 && ancestorStatus == 2)  return TRUE_NON_PROMPT_ELECTRON;
+  if( abs(ancestorPID) == 15 && ancestorStatus == 2) return TRUE_ELECTRON_FROM_TAU;
 
   // What remains is true prompt electrons
   return TRUE_PROMPT_ELECTRON;
 }
 
-void SimpleElectronNtupler::findFirstNonElectronMother(const reco::Candidate *particle,
-						 int &ancestorPID, int &ancestorStatus){
+void SimpleElectronNtupler::findFirstNonElectronMother(const reco::Candidate *particle, int &ancestorPID, int &ancestorStatus){
 
   if( particle == 0 ){
     printf("SimpleElectronNtupler: ERROR! null candidate pointer, this should never happen\n");
