@@ -403,7 +403,7 @@ void SimpleElectronNtupler::analyze(const edm::Event& iEvent, const edm::EventSe
     expectedMissingInnerHits_.push_back(el->gsfTrack()->hitPattern()
 					.numberOfLostHits(reco::HitPattern::MISSING_INNER_HITS) );
 
-    bool passConvVeto = !ConversionTools::hasMatchedConversion(*el, conversions, theBeamSpot->position());
+    bool passConvVeto = !ConversionTools::hasMatchedConversion(*el, *conversions, theBeamSpot->position());
     passConversionVeto_.push_back( (int) passConvVeto );
 
     // Match to generator level truth

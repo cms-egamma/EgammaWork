@@ -333,10 +333,8 @@ ElectronNtuplerVIDDemo::analyze(const edm::Event& iEvent, const edm::EventSetup&
 
   // Get the conversions collection
   edm::Handle<reco::ConversionCollection> conversions;
-  if(isAOD)
-    iEvent.getByToken(conversionsToken_, conversions);
-  else
-    iEvent.getByToken(conversionsMiniAODToken_, conversions);
+  if(isAOD) iEvent.getByToken(conversionsToken_, conversions);
+  else      iEvent.getByToken(conversionsMiniAODToken_, conversions);
 
   // Get the electron ID data from the event stream.
   // Note: this implies that the VID ID modules have been run upstream.
@@ -384,9 +382,7 @@ ElectronNtuplerVIDDemo::analyze(const edm::Event& iEvent, const edm::EventSetup&
     dz_.push_back( theTrack->dz( firstGoodVertex->position() ) );
     
     // Conversion rejection
-    bool passConvVeto = !ConversionTools::hasMatchedConversion(*el, 
-							       conversions,
-							       theBeamSpot->position());
+    bool passConvVeto = !ConversionTools::hasMatchedConversion(*el, *conversions, theBeamSpot->position());
     passConversionVeto_.push_back( (int) passConvVeto );
 
     //
