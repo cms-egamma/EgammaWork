@@ -28,7 +28,7 @@
 #include "DataFormats/EgammaCandidates/interface/GsfElectronFwd.h"
 #include "DataFormats/PatCandidates/interface/Electron.h"
 
-#include "RecoEgamma/ElectronIdentification/interface/VersionedGsfElectronSelector.h"
+#include "PhysicsTools/SelectorUtils/interface/VersionedSelector.h"
 
 int main(int argc, char* argv[]) 
 {
@@ -70,7 +70,9 @@ int main(int argc, char* argv[])
   const edm::ParameterSet& loose_id_conf = my_ids.getParameterSet("loose");
   const edm::ParameterSet& medium_id_conf = my_ids.getParameterSet("medium");
   const edm::ParameterSet& tight_id_conf = my_ids.getParameterSet("tight");
-    
+
+  typedef VersionedSelector<edm::Ptr<reco::GsfElectron> > VersionedGsfElectronSelector;
+
   VersionedGsfElectronSelector loose_id(loose_id_conf);
   VersionedGsfElectronSelector medium_id(medium_id_conf);
   VersionedGsfElectronSelector tight_id(tight_id_conf);  

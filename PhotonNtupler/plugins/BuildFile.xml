@@ -4,4 +4,6 @@
 <use name="CommonTools/UtilAlgos"/>
 <use name="DataFormats/PatCandidates" />
 <use name="RecoEgamma/EgammaTools" />
+<use name="CommonTools/Egamma" />
+<use name="SimDataFormats/GeneratorProducts" />
 <flags EDM_PLUGIN="1"/>
